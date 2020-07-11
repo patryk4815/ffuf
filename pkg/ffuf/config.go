@@ -2,9 +2,11 @@ package ffuf
 
 import (
 	"context"
+	"net/http"
 )
 
 type Config struct {
+	Cookies                []http.Cookie             `json:"cookies"`
 	Headers                map[string]string         `json:"headers"`
 	Extensions             []string                  `json:"extensions"`
 	DirSearchCompat        bool                      `json:"dirsearch_compatibility"`

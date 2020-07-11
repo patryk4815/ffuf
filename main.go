@@ -5,20 +5,20 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/ffuf/ffuf/pkg/ffuf"
+	"github.com/ffuf/ffuf/pkg/filter"
+	"github.com/ffuf/ffuf/pkg/input"
+	"github.com/ffuf/ffuf/pkg/output"
+	"github.com/ffuf/ffuf/pkg/runner"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"net/textproto"
 	"net/url"
 	"os"
 	"runtime"
 	"strconv"
 	"strings"
-
-	"github.com/ffuf/ffuf/pkg/ffuf"
-	"github.com/ffuf/ffuf/pkg/filter"
-	"github.com/ffuf/ffuf/pkg/input"
-	"github.com/ffuf/ffuf/pkg/output"
-	"github.com/ffuf/ffuf/pkg/runner"
 )
 
 type cliOptions struct {
@@ -297,9 +297,30 @@ func prepareConfig(parseOpts *cliOptions, conf *ffuf.Config) error {
 		conf.Extensions = extensions
 	}
 
-	// Convert cookies to a header
+	// Convert cookies to []*http.Cookie
 	if len(parseOpts.cookies) > 0 {
-		parseOpts.headers.Set("Cookie: " + strings.Join(parseOpts.cookies, "; "))
+		for _, cookie := range parseOpts.cookies {
+			// if multi cookies inline
+			if strings.Contains(cookie, "; ") {
+				for _, cookie := range strings.Split(cookie, "; ") {
+					pos := strings.IndexByte(cookie, '=')
+					if pos > -1 {
+						conf.Cookies = append(conf.Cookies, http.Cookie{
+							Name:  cookie[:pos],
+							Value: cookie[pos+1:],
+						})
+					}
+				}
+			} else {
+				pos := strings.IndexByte(cookie, '=')
+				if pos > -1 {
+					conf.Cookies = append(conf.Cookies, http.Cookie{
+						Name:  cookie[:pos],
+						Value: cookie[pos+1:],
+					})
+				}
+			}
+		}
 	}
 
 	//Prepare inputproviders

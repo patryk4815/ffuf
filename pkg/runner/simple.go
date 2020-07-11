@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httputil"
 	"net/textproto"
 	"net/url"
@@ -42,6 +43,8 @@ func NewSimpleRunner(conf *ffuf.Config, replay bool) ffuf.RunnerProvider {
 		}
 	}
 
+	jar, _ := cookiejar.New(nil)
+
 	simplerunner.config = conf
 	simplerunner.client = &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error { return http.ErrUseLastResponse },
@@ -55,7 +58,9 @@ func NewSimpleRunner(conf *ffuf.Config, replay bool) ffuf.RunnerProvider {
 				InsecureSkipVerify: true,
 				Renegotiation:      tls.RenegotiateOnceAsClient,
 			},
-		}}
+		},
+		Jar: jar,
+	}
 
 	if conf.FollowRedirects {
 		simplerunner.client.CheckRedirect = nil
@@ -70,6 +75,7 @@ func (r *SimpleRunner) Prepare(input map[string][]byte) (ffuf.Request, error) {
 	req.Url = r.config.Url
 	req.Method = r.config.Method
 	req.Data = []byte(r.config.Data)
+	req.Cookies = r.config.Cookies
 
 	for keyword, inputitem := range input {
 		req.Method = strings.Replace(req.Method, keyword, string(inputitem), -1)
@@ -117,6 +123,9 @@ func (r *SimpleRunner) Execute(req *ffuf.Request) (ffuf.Response, error) {
 		rawreq, _ = httputil.DumpRequestOut(httpreq, true)
 	}
 
+	for _, cookie := range req.Cookies {
+		httpreq.AddCookie(&cookie)
+	}
 	httpresp, err := r.client.Do(httpreq)
 	if err != nil {
 		return ffuf.Response{}, err

@@ -1,5 +1,7 @@
 package ffuf
 
+import "net/http"
+
 // Request holds the meaningful data that is passed for runner for making the query
 type Request struct {
 	Method   string
@@ -10,6 +12,7 @@ type Request struct {
 	Input    map[string][]byte
 	Position int
 	Raw      string
+	Cookies  []http.Cookie
 }
 
 func NewRequest(conf *Config) Request {
