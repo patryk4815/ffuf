@@ -43,8 +43,6 @@ func NewSimpleRunner(conf *ffuf.Config, replay bool) ffuf.RunnerProvider {
 		}
 	}
 
-	jar, _ := cookiejar.New(nil)
-
 	simplerunner.config = conf
 	simplerunner.client = &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error { return http.ErrUseLastResponse },
@@ -59,7 +57,6 @@ func NewSimpleRunner(conf *ffuf.Config, replay bool) ffuf.RunnerProvider {
 				Renegotiation:      tls.RenegotiateOnceAsClient,
 			},
 		},
-		Jar: jar,
 	}
 
 	if conf.FollowRedirects {
@@ -126,6 +123,8 @@ func (r *SimpleRunner) Execute(req *ffuf.Request) (ffuf.Response, error) {
 	for _, cookie := range req.Cookies {
 		httpreq.AddCookie(&cookie)
 	}
+	jar, _ := cookiejar.New(nil)
+	r.client.Jar = jar
 	httpresp, err := r.client.Do(httpreq)
 	if err != nil {
 		return ffuf.Response{}, err
