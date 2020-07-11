@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ffuf/ffuf/pkg/ffuf"
+	"github.com/patryk4815/ffuf/pkg/ffuf"
 )
 
 func TestNewSizeFilter(t *testing.T) {

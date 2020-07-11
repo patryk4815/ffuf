@@ -15,7 +15,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/ffuf/ffuf/pkg/ffuf"
+	"github.com/patryk4815/ffuf/pkg/ffuf"
 )
 
 //Download results < 5MB
